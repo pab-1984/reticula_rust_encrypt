@@ -34,7 +34,47 @@ impl GGH {
 
     // Desencripta el mensaje
     pub fn decrypt(&self, encrypted_message: Vec<BigUint>) -> Vec<BigUint> {
-        // En una implementación real, aquí aplicarías el algoritmo de reducción de retícula.
+        fn lll_reduction(basis: &DMatrix<f64>) -> DMatrix<f64> {
+            let mut b = basis.clone();
+            let dim = b.ncols();
+            let mut k = 1;
+        
+            while k < dim {
+                for j in (0..k).rev() {
+                    let b_k_proj = project_onto(&b.column(k), &b.column(j));
+                    if b_k_proj.norm_squared() > 0.5 * b.column(j).norm_squared() {
+                        let mu = (b.column(k).dot(&b.column(j)) / b.column(j).dot(&b.column(j))).round();
+                        let b_k = b.column(k) - b.column(j) * mu;
+                        b.set_column(k, &b_k);
+                    }
+                }
+        
+                if b.column(k).norm_squared() >= (0.75 - b.column(k - 1).dot(&b.column(k)).powi(2) / b.column(k - 1).norm_squared()) * b.column(k - 1).norm_squared() {
+                    k += 1;
+                } else {
+                    b.swap_columns(k, k - 1);
+                    k = std::cmp::max(k - 1, 1);
+                }
+            }
+        
+            b
+        }
+        
+        fn project_onto(u: &DVector<f64>, v: &DVector<f64>) -> DVector<f64> {
+            let scalar_proj = u.dot(v) / v.norm_squared();
+            v * scalar_proj
+        }
+        
+        fn main() {
+            let basis = DMatrix::from_row_slice(3, 3, &[
+                1.0, 1.0, 1.0,
+                -1.0, 0.0, 2.0,
+                3.0, 5.0, 6.0,
+            ]);
+        
+            let reduced_basis = lll_reduction(&basis);
+            println!("Reduced basis:\n{}", reduced_basis);
+        }
         encrypted_message // Esto es solo un marcador de posición.
     }
 }
