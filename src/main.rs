@@ -1,5 +1,6 @@
 use num_bigint::{BigUint, RandBigInt};
 use rand::{thread_rng, Rng};
+use nalgebra::{DMatrix, DVector};
 
 pub struct GGH {
     private_key: Vec<Vec<BigUint>>, // Clave privada: base casi ortogonal
